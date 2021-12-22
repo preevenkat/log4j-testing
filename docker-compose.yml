@@ -1,0 +1,72 @@
+version: '3.4'
+
+services:
+
+  elasticsearch:
+    build: elasticsearch/
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      #- /datadrive/elasticsearch:/usr/share/elasticsearch/data     
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - elk
+    environment:
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+    restart: unless-stopped
+
+  logstash:
+    build: logstash/
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5000:5000"
+      - "5044:5044"
+      - "9600:9600"
+      - "12200:12200/udp"
+      - "12201:12201/udp"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  kibana:
+    build: kibana/
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  
+  # metricbeat:
+  #   build: metricbeat/
+  #   hostname: "metricbeat-elk-uat"
+  #   user: root
+  #   environment:
+  #     ELASTICSEARCH_HOSTS: http://10.2.5.21:9200
+  #   volumes:
+  #     - ./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+  #     - /usr/share/zoneinfo/Asia/Singapore:/etc/localtime:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+  #     - /proc:/hostfs/proc:ro
+  #     - /:/hostfs:ro
+  #   restart: unless-stopped
+  #   networks:
+  #     - elk
+  #   depends_on:
+  #     - elasticsearch
+
+
+networks:
+  elk:
+    driver: bridge
