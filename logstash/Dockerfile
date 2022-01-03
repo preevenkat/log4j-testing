@@ -1,12 +1,4 @@
-FROM centos:7
-
-USER root
-
-RUN yum groupinstall "Development Tools" -y
-RUN yum install ruby ruby-devel -y
-RUN gem install bundler --no-ri --no-rdoc
-RUN gem install fpm --no-ri --no-rdoc
-RUN gem install pleaserun --no-ri --no-rdoc
+FROM ruby:3.1.0
 
 FROM docker.elastic.co/logstash/logstash:5.6.1
 RUN bin/ruby -rzip -e \
